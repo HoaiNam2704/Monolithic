@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Bookstore{% endblock %} — Microservice</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #1a73e8; --primary-dark: #0d47a1; --sidebar-w: 220px;
+    --bg: #f0f2f5; --white: #fff; --text: #333; --muted: #888;
+    --green: #1e8e3e; --red: #c5221f; --orange: #f9ab00;
+    --radius: 10px; --shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar { width: var(--sidebar-w); background: linear-gradient(180deg, #0d47a1, #1a73e8); color: #fff; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+  .sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .sidebar-logo h1 { font-size: 18px; font-weight: 700; }
+  .sidebar-logo p { font-size: 11px; opacity: 0.7; margin-top: 3px; }
+  .sidebar nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+  .nav-section { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: 0.5; padding: 14px 20px 4px; }
+  .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: rgba(255,255,255,0.85); text-decoration: none; font-size: 14px; transition: background 0.15s; }
+  .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.15); color: #fff; }
+  .nav-link .icon { font-size: 17px; width: 22px; text-align: center; }
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 12px; opacity: 0.6; }
+
+  /* Main content */
+  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar { background: var(--white); border-bottom: 1px solid #e0e0e0; padding: 14px 30px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .topbar h2 { font-size: 18px; color: var(--text); }
+  .topbar .badge-healthy { background: #e6f4ea; color: var(--green); font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
+  .topbar .badge-degraded { background: #fce8e6; color: var(--red); font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
+  .content { padding: 28px 30px; flex: 1; }
+
+  /* Cards grid */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px; }
+  .stat-card .stat-val { font-size: 28px; font-weight: 700; color: var(--primary); }
+  .stat-card .stat-label { font-size: 13px; color: var(--muted); }
+  .stat-card .stat-icon { font-size: 22px; }
+
+  /* Table */
+  .table-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .table-card .table-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+  .table-card .table-header h3 { font-size: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #f8f9fa; padding: 11px 16px; text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); border-bottom: 1px solid #eee; }
+  td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+
+  /* Form */
+  .form-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; margin-bottom: 24px; }
+  .form-card h3 { font-size: 15px; margin-bottom: 16px; color: var(--text); }
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .form-group { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .form-group input, .form-group select, .form-group textarea { border: 1px solid #ddd; border-radius: 7px; padding: 8px 12px; font-size: 14px; outline: none; transition: border 0.15s; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: none; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; text-decoration: none; }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-sm { padding: 4px 12px; font-size: 12px; }
+
+  /* Tags & badges */
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .tag-green { background: #e6f4ea; color: var(--green); }
+  .tag-red { background: #fce8e6; color: var(--red); }
+  .tag-blue { background: #e8f0fe; color: var(--primary); }
+  .tag-orange { background: #fef3e2; color: #ea8600; }
+
+  /* Alerts */
+  .alert { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 16px; }
+  .alert-success { background: #e6f4ea; color: var(--green); }
+  .alert-error { background: #fce8e6; color: var(--red); }
+
+  /* Search bar */
+  .search-box { display: flex; gap: 8px; align-items: center; }
+  .search-box input { border: 1px solid #ddd; border-radius: 7px; padding: 7px 12px; font-size: 13px; width: 220px; }
+
+  /* Toast */
+  #toast { position: fixed; bottom: 24px; right: 24px; background: #333; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+  #toast.show { display: block; animation: fadein 0.3s; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>📚 Bookstore</h1>
+    <p>Microservice Dashboard</p>
+  </div>
+  <nav>
+    <div class="nav-section">Tổng quan</div>
+    <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}"><span class="icon">🏠</span> Dashboard</a>
+
+    <div class="nav-section">Quản lý</div>
+    <a href="/books/" class="nav-link {% if '/books/' in request.path %}active{% endif %}"><span class="icon">📖</span> Sách</a>
+    <a href="/customers/" class="nav-link {% if '/customers/' in request.path %}active{% endif %}"><span class="icon">👥</span> Khách hàng</a>
+    <a href="/orders/" class="nav-link {% if '/orders/' in request.path %}active{% endif %}"><span class="icon">📦</span> Đơn hàng</a>
+    <a href="/staff-page/" class="nav-link {% if '/staff-page/' in request.path %}active{% endif %}"><span class="icon">👨‍💼</span> Nhân viên</a>
+
+    <div class="nav-section">Giao dịch</div>
+    <a href="/payments-page/" class="nav-link {% if '/payments-page/' in request.path %}active{% endif %}"><span class="icon">💳</span> Thanh toán</a>
+    <a href="/shipments-page/" class="nav-link {% if '/shipments-page/' in request.path %}active{% endif %}"><span class="icon">🚚</span> Vận chuyển</a>
+    <a href="/reviews-page/" class="nav-link {% if '/reviews-page/' in request.path %}active{% endif %}"><span class="icon">⭐</span> Đánh giá</a>
+
+    <div class="nav-section">API</div>
+    <a href="/health/" class="nav-link" target="_blank"><span class="icon">❤️</span> Health Check</a>
+    <a href="/api/books/" class="nav-link" target="_blank"><span class="icon">🔌</span> REST API</a>
+  </nav>
+  <div class="sidebar-footer">12 services đang chạy</div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+    <span id="health-badge">...</span>
+  </div>
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+function showToast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = ok ? '#1e8e3e' : '#c5221f';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Health badge
+fetch('/health/').then(r=>r.json()).then(d=>{
+  const el = document.getElementById('health-badge');
+  const ok = d.status === 'healthy';
+  el.textContent = ok ? '✅ Healthy' : '⚠️ Degraded';
+  el.className = ok ? 'badge-healthy' : 'badge-degraded';
+}).catch(()=>{ document.getElementById('health-badge').textContent='❌ Offline'; });
+
+{% block extra_js %}{% endblock %}
+</script>
+</body>
+</html>

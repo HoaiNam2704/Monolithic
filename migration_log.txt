@@ -1,0 +1,57 @@
+=== staff-service ===
+No changes detected in app 'app'
+Operations to perform:
+  Apply all migrations: admin, app, auth, contenttypes, sessions
+Running migrations:
+  No migrations to apply.
+DB created: True
+=== manager-service ===
+No changes detected in app 'app'
+Operations to perform:
+  Apply all migrations: admin, app, auth, contenttypes, sessions
+Running migrations:
+  No migrations to apply.
+DB created: True
+=== catalog-service ===
+No changes detected in app 'app'
+Operations to perform:
+  Apply all migrations: admin, app, auth, contenttypes, sessions
+Running migrations:
+  No migrations to apply.
+DB created: True
+=== order-service ===
+No changes detected in app 'app'
+Operations to perform:
+  Apply all migrations: admin, app, auth, contenttypes, sessions
+Running migrations:
+  No migrations to apply.
+DB created: True
+=== ship-service ===
+No changes detected in app 'app'
+Operations to perform:
+  Apply all migrations: admin, app, auth, contenttypes, sessions
+Running migrations:
+  No migrations to apply.
+DB created: True
+=== pay-service ===
+No changes detected in app 'app'
+Operations to perform:
+  Apply all migrations: admin, app, auth, contenttypes, sessions
+Running migrations:
+  No migrations to apply.
+DB created: True
+=== comment-rate-service ===
+No changes detected in app 'app'
+Operations to perform:
+  Apply all migrations: admin, app, auth, contenttypes, sessions
+Running migrations:
+  No migrations to apply.
+DB created: True
+=== recommender-ai-service ===
+No changes detected in app 'app'
+Operations to perform:
+  Apply all migrations: admin, app, auth, contenttypes, sessions
+Running migrations:
+  No migrations to apply.
+DB created: True
+ALL MIGRATIONS DONE
