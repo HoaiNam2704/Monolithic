@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Quản lý Quần áo{% endblock %}
+{% block page_title %} Quản lý Quần áo{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <h3> Thêm quần áo mới</h3>
+  <div class="form-row">
+    <div class="form-group"><label>Tên sản phẩm</label><input id="f-name" placeholder="Áo phông basic"></div>
+    <div class="form-group"><label>Danh mục</label>
+      <select id="f-category">
+        <option value="">-- Chọn danh mục --</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Kích thước</label>
+      <select id="f-size">
+        <option value="">-- Chọn kích thước --</option>
+        <option value="XS">XS</option>
+        <option value="S">S</option>
+        <option value="M">M</option>
+        <option value="L">L</option>
+        <option value="XL">XL</option>
+        <option value="XXL">XXL</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Màu sắc</label>
+      <select id="f-color">
+        <option value="">-- Chọn màu --</option>
+        <option value="red">Đỏ</option>
+        <option value="blue">Xanh</option>
+        <option value="black">Đen</option>
+        <option value="white">Trắng</option>
+        <option value="green">Xanh lá</option>
+        <option value="yellow">Vàng</option>
+        <option value="pink">Hồng</option>
+        <option value="brown">Nâu</option>
+        <option value="gray">Xám</option>
+        <option value="purple">Tím</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Giá (đ)</label><input id="f-price" type="number" placeholder="150000"></div>
+    <div class="form-group"><label>Tồn kho</label><input id="f-stock" type="number" placeholder="10"></div>
+    <div class="form-group"><label>URL ảnh</label><input id="f-image" placeholder="https://..."></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group" style="flex: 1;"><label>Mô tả</label><textarea id="f-description" placeholder="Mô tả chi tiết sản phẩm" style="width:100%;min-height:80px;"></textarea></div>
+  </div>
+  <button class="btn btn-primary" onclick="addClothes()"> Thêm quần áo</button>
+</div>
+
+<div class="table-card">
+  <div class="table-header">
+    <h3>Danh sách quần áo (<span id="clothes-count">0</span>)</h3>
+    <div class="search-box">
+      <input id="search" placeholder=" Tìm kiếm..." oninput="filterClothes()" style="border:1px solid #ddd;border-radius:7px;padding:7px 12px;font-size:13px;width:220px;">
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>ID</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Kích thước</th><th>Màu</th><th>Giá</th><th>Tồn kho</th><th>Đánh giá</th><th>Thao tác</th></tr></thead>
+    <tbody id="clothes-table"><tr><td colspan="9" style="text-align:center;padding:20px;color:#888">Đang tải...</td></tr></tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+let allClothes = [];
+let allCategories = [];
+
+function loadCategories() {
+  fetch('/api/clothes/api/categories/').then(r => r.json()).then(data => {
+    allCategories = Array.isArray(data) ? data : (data.results || []);
+    const select = document.getElementById('f-category');
+    select.innerHTML = '<option value="">-- Chọn danh mục --</option>' + 
+      allCategories.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
+  }).catch(e => console.log('Categories load error:', e));
+}
+
+function loadClothes() {
+  fetch('/api/clothes/api/clothes/').then(r => r.json()).then(data => {
+    allClothes = Array.isArray(data) ? data : (data.results || []);
+    document.getElementById('clothes-count').textContent = allClothes.length;
+    renderClothes(allClothes);
+  }).catch(() => showToast('Không tải được danh sách quần áo', false));
+}
+
+function renderClothes(clothes) {
+  const tbody = document.getElementById('clothes-table');
+  if (!clothes.length) {
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon"></div>Chưa có quần áo nào</div></td></tr>';
+    return;
+  }
+  
+  const colorLabels = {red:'Đỏ', blue:'Xanh', black:'Đen', white:'Trắng', green:'Xanh lá', yellow:'Vàng', pink:'Hồng', brown:'Nâu', gray:'Xám', purple:'Tím'};
+  
+  tbody.innerHTML = clothes.map(c => {
+    const price = Number(c.price).toLocaleString('vi-VN');
+    const stockTag = c.stock > 0 ? 'tag-blue' : 'tag-red';
+    const ratingTag = c.rating > 0 ? 'tag-green' : 'tag-gray';
+    return '<tr>' +
+      '<td style="color:#888">#' + c.id + '</td>' +
+      '<td><strong>' + c.name + '</strong></td>' +
+      '<td>' + (c.category_name || c.category) + '</td>' +
+      '<td>' + c.size + '</td>' +
+      '<td><span class="tag tag-primary">' + (colorLabels[c.color] || c.color) + '</span></td>' +
+      '<td><span class="tag tag-green">' + price + ' đ</span></td>' +
+      '<td><span class="tag ' + stockTag + '">' + c.stock + '</span></td>' +
+      '<td><span class="tag ' + ratingTag + '">⭐ ' + c.rating + '</span></td>' +
+      '<td><button class="btn btn-danger btn-sm" onclick="deleteClothes(' + c.id + ')"> Xóa</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function filterClothes() {
+  const q = document.getElementById('search').value.toLowerCase();
+  renderClothes(allClothes.filter(c => 
+    c.name.toLowerCase().includes(q) || 
+    (c.category_name || '').toLowerCase().includes(q)
+  ));
+}
+
+function addClothes() {
+  const body = {
+    name: document.getElementById('f-name').value.trim(),
+    category: parseInt(document.getElementById('f-category').value),
+    size: document.getElementById('f-size').value.trim(),
+    color: document.getElementById('f-color').value.trim(),
+    price: document.getElementById('f-price').value,
+    stock: document.getElementById('f-stock').value,
+    image_url: document.getElementById('f-image').value.trim(),
+    description: document.getElementById('f-description').value.trim(),
+  };
+  
+  if (!body.name || !body.category || !body.size || !body.color || !body.price || !body.stock || body.stock < 0) {
+    showToast('Vui lòng điền đầy đủ thông tin', false); return;
+  }
+  
+  fetch('/api/clothes/api/clothes/', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
+    .then(r => { if (!r.ok) return r.json().then(e => { throw e; }); return r.json(); })
+    .then(() => {
+      showToast(' Thêm quần áo thành công!');
+      loadClothes();
+      ['f-name', 'f-category', 'f-size', 'f-color', 'f-price', 'f-stock', 'f-image', 'f-description'].forEach(id => document.getElementById(id).value = '');
+    })
+    .catch(e => showToast('Lỗi: ' + JSON.stringify(e), false));
+}
+
+function deleteClothes(id) {
+  if (!confirm('Xóa quần áo này?')) return;
+  fetch('/api/clothes/api/clothes/' + id + '/', {method: 'DELETE'})
+    .then(() => { showToast(' Đã xóa quần áo'); loadClothes(); })
+    .catch(() => showToast('Lỗi khi xóa', false));
+}
+
+loadCategories();
+loadClothes();
+{% endblock %}

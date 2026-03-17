@@ -77,6 +77,11 @@ services:
       - book-service
       - comment-rate-service
 
+  clothes-service:
+    build: ./clothes-service
+    ports:
+      - "8012:8000"
+
   api-gateway:
     build: ./api-gateway
     ports:
@@ -93,6 +98,7 @@ services:
       - PAY_SERVICE_URL=http://pay-service:8000
       - COMMENT_RATE_SERVICE_URL=http://comment-rate-service:8000
       - RECOMMENDER_SERVICE_URL=http://recommender-ai-service:8000
+      - CLOTHES_SERVICE_URL=http://clothes-service:8000
     depends_on:
       - customer-service
       - book-service
@@ -105,3 +111,4 @@ services:
       - pay-service
       - comment-rate-service
       - recommender-ai-service
+      - clothes-service

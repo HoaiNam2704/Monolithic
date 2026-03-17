@@ -29,9 +29,12 @@
   /* Main content */
   .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
   .topbar { background: var(--white); border-bottom: 1px solid #e0e0e0; padding: 14px 30px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
   .topbar h2 { font-size: 18px; color: var(--text); }
   .topbar .badge-healthy { background: #e6f4ea; color: var(--green); font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
   .topbar .badge-degraded { background: #fce8e6; color: var(--red); font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
+  .admin-chip { font-size: 12px; color: #223; background: #eef3ff; border: 1px solid #dbe5ff; border-radius: 999px; padding: 5px 10px; }
+  .logout-link { font-size: 12px; text-decoration: none; color: #fff; background: #c5221f; border-radius: 6px; padding: 6px 10px; }
   .content { padding: 28px 30px; flex: 1; }
 
   /* Cards grid */
@@ -106,6 +109,7 @@
 
     <div class="nav-section">Quản lý</div>
     <a href="/books/" class="nav-link {% if '/books/' in request.path %}active{% endif %}"><span class="icon">📖</span> Sách</a>
+    <a href="/clothes/" class="nav-link {% if '/clothes/' in request.path %}active{% endif %}"><span class="icon">👕</span> Quần áo</a>
     <a href="/customers/" class="nav-link {% if '/customers/' in request.path %}active{% endif %}"><span class="icon">👥</span> Khách hàng</a>
     <a href="/orders/" class="nav-link {% if '/orders/' in request.path %}active{% endif %}"><span class="icon">📦</span> Đơn hàng</a>
     <a href="/staff-page/" class="nav-link {% if '/staff-page/' in request.path %}active{% endif %}"><span class="icon">👨‍💼</span> Nhân viên</a>
@@ -116,6 +120,7 @@
     <a href="/reviews-page/" class="nav-link {% if '/reviews-page/' in request.path %}active{% endif %}"><span class="icon">⭐</span> Đánh giá</a>
 
     <div class="nav-section">API</div>
+    <a href="/shop/" class="nav-link {% if '/shop/' in request.path %}active{% endif %}"><span class="icon">🛍️</span> User Store</a>
     <a href="/health/" class="nav-link" target="_blank"><span class="icon">❤️</span> Health Check</a>
     <a href="/api/books/" class="nav-link" target="_blank"><span class="icon">🔌</span> REST API</a>
   </nav>
@@ -125,7 +130,13 @@
 <div class="main">
   <div class="topbar">
     <h2>{% block page_title %}Dashboard{% endblock %}</h2>
-    <span id="health-badge">...</span>
+    <div class="topbar-right">
+      {% if request.session.admin_manager_id %}
+      <span class="admin-chip">👤 {{ request.session.admin_name }} ({{ request.session.admin_employee_id }})</span>
+      <a class="logout-link" href="/admin/logout/">Dang xuat</a>
+      {% endif %}
+      <span id="health-badge">...</span>
+    </div>
   </div>
   <div class="content">
     {% block content %}{% endblock %}

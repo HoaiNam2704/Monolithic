@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dang nhap nguoi dung - Bookstore</title>
+<style>
+  :root {
+    --bg: #f4f8f7;
+    --panel: #ffffff;
+    --ink: #1f2937;
+    --brand: #007f5f;
+    --line: #d7dee7;
+    --err-bg: #fdecec;
+    --err: #b42318;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: radial-gradient(circle at 20% 0%, #d8f3e8, #f4f8f7 40%);
+    color: var(--ink);
+  }
+  .box {
+    width: min(460px, 92vw);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.08);
+  }
+  h1 { margin: 0 0 6px; font-size: 24px; }
+  p { margin: 0 0 14px; color: #6b7280; }
+  label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+  input {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  button {
+    width: 100%;
+    border: 0;
+    border-radius: 9px;
+    min-height: 42px;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .err {
+    background: var(--err-bg);
+    color: var(--err);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+  .note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+  .back {
+    display: inline-block;
+    margin-top: 10px;
+    text-decoration: none;
+    color: #0f172a;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+  <form class="box" method="post" action="/user/login/submit/">
+    {% csrf_token %}
+    <h1>Dang nhap nguoi dung</h1>
+    <p>Nhap email da dang ky de vao cua hang.</p>
+
+    {% if error %}
+      <div class="err">{{ error }}</div>
+    {% endif %}
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" required value="{{ email|default:'' }}" placeholder="ban@example.com">
+
+    <button type="submit">Dang nhap</button>
+
+    <div class="note">Chua co tai khoan? <a href="/user/register/">Dang ky ngay</a>.</div>
+    <a class="back" href="/">Ve Admin Dashboard</a>
+  </form>
+</body>
+</html>

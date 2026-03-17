@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Store - Bookstore</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --panel: #ffffff;
+    --ink: #1f2430;
+    --muted: #6e7781;
+    --brand: #007f5f;
+    --brand-dark: #046c4e;
+    --accent: #ff7b00;
+    --line: #e7e9ee;
+    --danger: #bf1f2f;
+    --shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at 15% 15%, #dff4eb 0, #f6f7fb 45%);
+    color: var(--ink);
+    font-family: "Segoe UI", Tahoma, sans-serif;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 22px 18px 40px; }
+  .hero {
+    background: linear-gradient(120deg, #007f5f, #00a676);
+    color: #fff;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+  }
+  .hero h1 { margin: 0 0 8px; font-size: 26px; }
+  .hero p { margin: 0; opacity: .92; }
+  .hero-actions { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-actions a {
+    color: #fff;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .user-chip {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.4);
+    font-size: 12px;
+  }
+  .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    padding: 16px;
+  }
+  h2 { margin: 0 0 12px; font-size: 17px; }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  input, select {
+    border: 1px solid #d2d7df;
+    border-radius: 9px;
+    padding: 9px 11px;
+    font-size: 14px;
+    min-height: 38px;
+  }
+  .books { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .book {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .book h3 { margin: 0; font-size: 15px; }
+  .book p { margin: 0; font-size: 13px; color: var(--muted); }
+  .book .price { color: var(--brand); font-weight: 700; }
+  .book .stock { font-size: 12px; }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .btn {
+    border: 0;
+    border-radius: 9px;
+    padding: 8px 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--brand); color: #fff; }
+  .btn-primary:hover { background: var(--brand-dark); }
+  .btn-light { background: #f2f4f7; color: #1f2430; }
+  .btn-danger { background: #fde9eb; color: var(--danger); }
+  .cart-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow: auto; }
+  .cart-item {
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 9px;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 10px;
+  }
+  .sum { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cfd5dd; }
+  .sum strong { color: var(--accent); font-size: 20px; }
+  .orders { margin-top: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 9px 8px; border-bottom: 1px solid #edf0f4; text-align: left; font-size: 13px; }
+  th { color: #6c7382; background: #f9fafc; }
+  .empty { text-align: center; color: var(--muted); padding: 20px 8px; }
+  .pill { border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600; background: #eef5ff; color: #2563eb; }
+  .ok { background: #e7f9ef; color: #0f9d58; }
+  .warn { background: #fff4df; color: #d97706; }
+  #toast {
+    position: fixed;
+    right: 20px;
+    bottom: 16px;
+    background: #263238;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: none;
+  }
+  @media (max-width: 960px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>Bookstore User Store</h1>
+    <p>Giao diện người dùng để chọn sách, tạo đơn hàng và theo dõi lịch sử mua.</p>
+    <div class="hero-actions">
+      <span class="user-chip">👤 {{ user_name }} ({{ user_email }})</span>
+      <a href="/">Chuyển sang Admin Dashboard</a>
+      <a href="/user/logout/">Dang xuat</a>
+      <a href="/health/" target="_blank">Health Check</a>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2>1) Chọn sách</h2>
+      <div class="toolbar">
+        <input value="{{ user_name }} (#{{ user_customer_id }})" disabled style="min-width:220px; background:#f2f4f7">
+        <input id="search" placeholder="Tìm theo tên sách hoặc tác giả" style="min-width:240px; flex:1">
+      </div>
+      <div class="books" id="books"></div>
+    </section>
+
+    <aside class="card">
+      <h2>2) Giỏ hàng tạm</h2>
+      <div class="cart-list" id="cart-list">
+        <div class="empty">Chưa có sản phẩm nào</div>
+      </div>
+      <div class="sum">
+        <div>Tổng sản phẩm: <span id="item-count">0</span></div>
+        <div>Tổng tiền: <strong id="total">0 đ</strong></div>
+      </div>
+      <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
+        <button class="btn btn-light" onclick="clearCart()">Xóa giỏ</button>
+      </div>
+
+      <h2 style="margin-top:14px">3) Đặt hàng</h2>
+      <input id="ship-addr" placeholder="Địa chỉ giao hàng" style="width:100%; margin-bottom:8px">
+      <button class="btn btn-primary" style="width:100%" onclick="checkout()">Đặt hàng ngay</button>
+    </aside>
+  </div>
+
+  <section class="card orders">
+    <h2>Lịch sử đơn hàng của khách đã chọn</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Mã đơn</th>
+          <th>Số SP</th>
+          <th>Tổng tiền</th>
+          <th>Trạng thái</th>
+          <th>Ngày tạo</th>
+        </tr>
+      </thead>
+      <tbody id="order-body">
+        <tr><td colspan="5" class="empty">Chưa có dữ liệu</td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var CURRENT_USER_ID = {{ user_customer_id|default:0 }};
+var allBooks = [];
+var cart = [];
+
+function toast(msg, ok) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.style.background = ok === false ? '#b42318' : '#1f2937';
+  setTimeout(function() { t.style.display = 'none'; }, 2400);
+}
+
+function formatVnd(v) {
+  return Number(v || 0).toLocaleString('vi-VN') + ' đ';
+}
+
+function getCustomerId() {
+  return CURRENT_USER_ID;
+}
+
+function loadBooks() {
+  fetch('/api/books/').then(function(r) { return r.json(); }).then(function(data) {
+    allBooks = Array.isArray(data) ? data : [];
+    renderBooks(allBooks);
+  }).catch(function() {
+    toast('Không tải được danh sách sách', false);
+  });
+}
+
+function renderBooks(items) {
+  var host = document.getElementById('books');
+  if (!items.length) {
+    host.innerHTML = '<div class="empty">Không có sách</div>';
+    return;
+  }
+  host.innerHTML = items.map(function(b) {
+    return '<article class="book">' +
+      '<h3>' + b.title + '</h3>' +
+      '<p>Tác giả: ' + b.author + '</p>' +
+      '<div class="row"><span class="price">' + formatVnd(b.price) + '</span>' +
+      '<span class="stock">Tồn kho: ' + b.stock + '</span></div>' +
+      '<div class="row">' +
+      '<input id="qty-' + b.id + '" type="number" min="1" value="1" style="width:70px">' +
+      '<button class="btn btn-primary" onclick="addToCart(' + b.id + ')">Thêm</button>' +
+      '</div>' +
+      '</article>';
+  }).join('');
+}
+
+function addToCart(bookId) {
+  var customerId = getCustomerId();
+  if (!customerId) {
+    toast('Hãy chọn khách hàng trước khi thêm sách', false);
+    return;
+  }
+  var q = parseInt(document.getElementById('qty-' + bookId).value, 10) || 1;
+  var book = allBooks.find(function(x) { return x.id === bookId; });
+  if (!book) return;
+  var hit = cart.find(function(i) { return i.book_id === bookId; });
+  if (hit) {
+    hit.quantity += q;
+  } else {
+    cart.push({ book_id: bookId, title: book.title, quantity: q, unit_price: Number(book.price) });
+  }
+  renderCart();
+  toast('Đã thêm vào giỏ tạm');
+}
+
+function removeCart(bookId) {
+  cart = cart.filter(function(i) { return i.book_id !== bookId; });
+  renderCart();
+}
+
+function clearCart() {
+  cart = [];
+  renderCart();
+}
+
+function renderCart() {
+  var list = document.getElementById('cart-list');
+  if (!cart.length) {
+    list.innerHTML = '<div class="empty">Chưa có sản phẩm nào</div>';
+    document.getElementById('item-count').textContent = '0';
+    document.getElementById('total').textContent = '0 đ';
+    return;
+  }
+  var total = 0;
+  var count = 0;
+  list.innerHTML = cart.map(function(i) {
+    var sub = Number(i.unit_price) * Number(i.quantity);
+    total += sub;
+    count += Number(i.quantity);
+    return '<div class="cart-item">' +
+      '<div><strong>' + i.title + '</strong><div style="font-size:12px;color:#6e7781">' + formatVnd(i.unit_price) + ' x ' + i.quantity + '</div></div>' +
+      '<div>' + formatVnd(sub) + '</div>' +
+      '<button class="btn btn-danger" onclick="removeCart(' + i.book_id + ')">Xóa</button>' +
+      '</div>';
+  }).join('');
+  document.getElementById('item-count').textContent = String(count);
+  document.getElementById('total').textContent = formatVnd(total);
+}
+
+function checkout() {
+  var customerId = getCustomerId();
+  var addr = document.getElementById('ship-addr').value.trim();
+  if (!customerId) {
+    toast('Chọn khách hàng trước', false);
+    return;
+  }
+  if (!cart.length) {
+    toast('Giỏ hàng đang trống', false);
+    return;
+  }
+  if (!addr) {
+    toast('Nhập địa chỉ giao hàng', false);
+    return;
+  }
+  var total = cart.reduce(function(s, i) { return s + (i.unit_price * i.quantity); }, 0);
+  var body = {
+    customer_id: Number(customerId),
+    shipping_address: addr,
+    total_amount: total.toFixed(2),
+    items: cart.map(function(i) {
+      return {
+        book_id: Number(i.book_id),
+        quantity: Number(i.quantity),
+        unit_price: Number(i.unit_price).toFixed(2)
+      };
+    })
+  };
+  fetch('/api/orders/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function(r) {
+    if (!r.ok) {
+      return r.json().then(function(e) { throw e; });
+    }
+    return r.json();
+  }).then(function() {
+    toast('Đặt hàng thành công');
+    cart = [];
+    document.getElementById('ship-addr').value = '';
+    renderCart();
+    loadOrders();
+  }).catch(function(e) {
+    toast('Đặt hàng thất bại: ' + JSON.stringify(e), false);
+  });
+}
+
+function loadOrders() {
+  var customerId = getCustomerId();
+  var body = document.getElementById('order-body');
+  if (!customerId) {
+    body.innerHTML = '<tr><td colspan="5" class="empty">Chọn khách hàng để xem đơn hàng</td></tr>';
+    return;
+  }
+  fetch('/api/orders/?customer_id=' + customerId).then(function(r) { return r.json(); }).then(function(data) {
+    var orders = Array.isArray(data) ? data : [];
+    if (!orders.length) {
+      body.innerHTML = '<tr><td colspan="5" class="empty">Khách hàng này chưa có đơn</td></tr>';
+      return;
+    }
+    body.innerHTML = orders.map(function(o) {
+      var itemsCount = (o.items && o.items.length) ? o.items.length : 0;
+      var stClass = o.status === 'completed' ? 'pill ok' : 'pill warn';
+      var created = o.created_at ? new Date(o.created_at).toLocaleString('vi-VN') : '---';
+      return '<tr>' +
+        '<td>#' + o.id + '</td>' +
+        '<td>' + itemsCount + '</td>' +
+        '<td>' + formatVnd(o.total_amount) + '</td>' +
+        '<td><span class="' + stClass + '">' + o.status + '</span></td>' +
+        '<td>' + created + '</td>' +
+        '</tr>';
+    }).join('');
+  }).catch(function() {
+    body.innerHTML = '<tr><td colspan="5" class="empty">Không tải được đơn hàng</td></tr>';
+  });
+}
+
+document.getElementById('search').addEventListener('input', function(e) {
+  var q = e.target.value.toLowerCase();
+  var filtered = allBooks.filter(function(b) {
+    return String(b.title || '').toLowerCase().includes(q) || String(b.author || '').toLowerCase().includes(q);
+  });
+  renderBooks(filtered);
+});
+
+loadBooks();
+renderCart();
+loadOrders();
+</script>
+</body>
+</html>
